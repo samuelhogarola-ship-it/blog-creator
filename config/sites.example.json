@@ -1,0 +1,17 @@
+{
+  "sites": [
+    {
+      "id": "samuel-coach",
+      "name": "Samuel Coach de Alemán",
+      "root": "/Users/sam/Desktop/webs/samuel coach de aleman",
+      "baseUrl": "https://www.samuelcoachdealeman.com",
+      "postsDirectory": "f",
+      "imageDirectory": "assets/img/originales-samuel",
+      "siteAuditCommand": "npm run audit:seo",
+      "templatePost": "w-fragen-en-aleman",
+      "aliases": {
+        "url-antigua": "url-canonica"
+      }
+    }
+  ]
+}

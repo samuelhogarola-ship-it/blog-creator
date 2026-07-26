@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Blog Creator</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <span class="eyebrow">Editor local</span>
+      <h1>Blog Creator</h1>
+    </div>
+    <div class="top-actions">
+      <label class="site-picker">Web
+        <select id="siteSelect"></select>
+      </label>
+      <button id="auditSiteButton" class="button secondary">Auditar web</button>
+    </div>
+  </header>
+
+  <main class="workspace">
+    <aside class="sidebar">
+      <div class="sidebar-head">
+        <div>
+          <strong>Posts canónicos</strong>
+          <span id="postCount" class="count"></span>
+        </div>
+        <input id="postSearch" type="search" placeholder="Buscar post…">
+      </div>
+      <div id="postList" class="post-list" aria-live="polite"></div>
+      <details class="aliases">
+        <summary>Aliases y duplicados <span id="aliasCount" class="count"></span></summary>
+        <div id="aliasList"></div>
+      </details>
+    </aside>
+
+    <section class="editor-shell">
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">✦</div>
+        <h2>Elige un post</h2>
+        <p>Podrás editarlo con su SEO, revisar errores y guardar una copia segura.</p>
+      </div>
+
+      <form id="editorForm" class="editor-form hidden">
+        <div class="editor-heading">
+          <div>
+            <span id="editorStatus" class="status">Sin cambios</span>
+            <h2 id="editorName"></h2>
+          </div>
+          <a id="liveLink" class="button secondary" target="_blank" rel="noreferrer">Ver publicado</a>
+        </div>
+
+        <div class="seo-grid">
+          <label class="field full">Título SEO
+            <input id="seoTitle" required>
+            <span id="titleCounter" class="counter"></span>
+          </label>
+          <label class="field full">Meta description
+            <textarea id="seoDescription" rows="3" required></textarea>
+            <span id="descriptionCounter" class="counter"></span>
+          </label>
+          <label class="field">Slug
+            <input id="slug" readonly>
+          </label>
+          <label class="field">Canonical
+            <input id="canonical" readonly>
+          </label>
+        </div>
+
+        <div class="toolbar" role="toolbar" aria-label="Formato del texto">
+          <button type="button" data-command="bold" title="Negrita"><strong>B</strong></button>
+          <button type="button" data-command="italic" title="Cursiva"><em>I</em></button>
+          <button type="button" data-block="p">Párrafo</button>
+          <button type="button" data-block="h2">H2</button>
+          <button type="button" data-block="h3">H3</button>
+          <button type="button" data-command="insertUnorderedList">• Lista</button>
+          <button type="button" data-command="insertOrderedList">1. Lista</button>
+          <button type="button" id="linkButton">Enlace</button>
+          <button type="button" id="imageButton">Imagen</button>
+          <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
+        </div>
+
+        <div id="contentEditor" class="content-editor" contenteditable="true" spellcheck="true"></div>
+
+        <section id="reviewPanel" class="review-panel hidden" aria-live="polite"></section>
+
+        <div class="savebar">
+          <span>Se crea una copia de seguridad antes de cada guardado.</span>
+          <div>
+            <button id="reviewButton" type="button" class="button secondary">Revisar SEO</button>
+            <button id="saveButton" type="submit" class="button primary">Revisar y guardar</button>
+          </div>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <dialog id="auditDialog">
+    <div class="dialog-head">
+      <h2>Auditoría de la web</h2>
+      <button id="closeAudit" class="icon-button" aria-label="Cerrar">×</button>
+    </div>
+    <pre id="auditOutput">Preparando…</pre>
+  </dialog>
+  <script type="module" src="/app.js"></script>
+</body>
+</html>

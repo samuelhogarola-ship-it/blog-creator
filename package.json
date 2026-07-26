@@ -1,0 +1,15 @@
+{
+  "name": "blog-creator",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Editor local multisitio para posts con revisión SEO antes de guardar.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "check": "node --check server.js && node --check lib/html.js && node --check public/app.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

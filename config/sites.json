@@ -1,0 +1,26 @@
+{
+  "sites": [
+    {
+      "id": "samuel-coach",
+      "name": "Samuel Coach de Alemán",
+      "root": "/Users/sam/Desktop/webs/samuel coach de aleman",
+      "baseUrl": "https://www.samuelcoachdealeman.com",
+      "postsDirectory": "f",
+      "imageDirectory": "assets/img/originales-samuel",
+      "siteAuditCommand": "npm run audit:seo",
+      "templatePost": "w-fragen-en-aleman",
+      "aliases": {
+        "demonstrativpronomen-los-pronombres-demostrativos-en-aleman": "demonstrativpronomen-en-aleman",
+        "el-imperativo-en-aleman": "imperativ-en-aleman",
+        "haeufigkeitsadverbien-en-aleman": "adverbios-de-frecuencia-en-aleman",
+        "la-voz-pasiva-con-verbos-modales-en-aleman-passiv-mit-modalverben": "passiv-mit-modalverben-en-aleman",
+        "las-w-fragen-en-aleman": "w-fragen-en-aleman",
+        "los-articulos-posesivos-en-aleman-possessivartikel-auf-deutsch": "possessivartikel-en-aleman",
+        "partizip-1-vs-partizip-2-en-aleman": "partizip-1-en-aleman",
+        "partizip-2-en-aleman-la-formacion-del-participio": "partizip-2-en-aleman",
+        "tekamolo-2-0-en-aleman-satzbau": "tekamolo-orden-de-palabras-en-aleman",
+        "trennbare-verben-en-aleman-verbos-separables-y-no-separables": "trennbare-verben-en-aleman"
+      }
+    }
+  ]
+}
