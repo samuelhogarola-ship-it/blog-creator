@@ -5,7 +5,10 @@ const state = {
   aliases: [],
   activeSlug: "",
   dirty: false,
-  draft: null
+  draft: null,
+  mode: "visual",
+  selectedImage: null,
+  savedSelection: null
 };
 
 const $ = (selector) => document.querySelector(selector);
@@ -29,10 +32,17 @@ const elements = {
   titleCounter: $("#titleCounter"),
   descriptionCounter: $("#descriptionCounter"),
   contentEditor: $("#contentEditor"),
+  htmlSourceEditor: $("#htmlSourceEditor"),
+  visualModeButton: $("#visualModeButton"),
+  htmlModeButton: $("#htmlModeButton"),
+  toolbar: $(".toolbar"),
   reviewPanel: $("#reviewPanel"),
   reviewButton: $("#reviewButton"),
   saveButton: $("#saveButton"),
   imageButton: $("#imageButton"),
+  moveImageUpButton: $("#moveImageUpButton"),
+  moveImageDownButton: $("#moveImageDownButton"),
+  removeImageButton: $("#removeImageButton"),
   imageInput: $("#imageInput"),
   linkButton: $("#linkButton"),
   toast: $("#toast"),
@@ -66,9 +76,17 @@ function bindEvents() {
   elements.reviewButton.addEventListener("click", reviewActivePost);
   elements.auditSiteButton.addEventListener("click", auditSite);
   elements.closeAudit.addEventListener("click", () => elements.auditDialog.close());
-  elements.imageButton.addEventListener("click", () => elements.imageInput.click());
+  elements.visualModeButton.addEventListener("click", () => setEditorMode("visual"));
+  elements.htmlModeButton.addEventListener("click", () => setEditorMode("html"));
+  elements.imageButton.addEventListener("click", beginImageInsert);
   elements.imageInput.addEventListener("change", uploadSelectedImage);
+  elements.moveImageUpButton.addEventListener("click", () => moveSelectedImage(-1));
+  elements.moveImageDownButton.addEventListener("click", () => moveSelectedImage(1));
+  elements.removeImageButton.addEventListener("click", removeSelectedImage);
   elements.linkButton.addEventListener("click", insertLink);
+  elements.contentEditor.addEventListener("click", selectImageFromClick);
+  elements.contentEditor.addEventListener("keyup", rememberSelection);
+  elements.contentEditor.addEventListener("mouseup", rememberSelection);
   document.querySelectorAll("[data-command]").forEach((button) => {
     button.addEventListener("click", () => {
       elements.contentEditor.focus();
@@ -134,6 +152,9 @@ async function openPost(slug) {
     state.activeSlug = slug;
     state.draft = post;
     state.dirty = false;
+    state.mode = "visual";
+    state.selectedImage = null;
+    state.savedSelection = null;
     elements.emptyState.classList.add("hidden");
     elements.editorForm.classList.remove("hidden");
     elements.editorName.textContent = cleanBrand(post.title);
@@ -143,6 +164,9 @@ async function openPost(slug) {
     elements.slug.value = post.slug;
     elements.canonical.value = post.canonical;
     elements.contentEditor.innerHTML = rewriteAssetUrlsForEditor(post.contentHtml);
+    elements.htmlSourceEditor.value = post.contentHtml;
+    setEditorMode("visual");
+    updateImageControls();
     elements.reviewPanel.classList.add("hidden");
     updateCounters();
     setStatus("Sin cambios");
@@ -193,8 +217,124 @@ function collectDraft() {
   return {
     title: elements.seoTitle.value,
     description: elements.seoDescription.value,
-    contentHtml: restoreAssetUrls(elements.contentEditor.innerHTML)
+    contentHtml: getCurrentContentHtml()
   };
+}
+
+function getCurrentContentHtml() {
+  return state.mode === "html"
+    ? stripEditorState(elements.htmlSourceEditor.value)
+    : stripEditorState(restoreAssetUrls(elements.contentEditor.innerHTML));
+}
+
+function setEditorMode(mode) {
+  if (mode === state.mode && !elements.contentEditor.classList.contains("hidden")) return;
+  if (mode === "html") {
+    clearSelectedImage(false);
+    elements.htmlSourceEditor.value = getCurrentContentHtml();
+    elements.contentEditor.classList.add("hidden");
+    elements.htmlSourceEditor.classList.remove("hidden");
+    elements.toolbar.classList.add("hidden");
+    elements.htmlModeButton.classList.add("active");
+    elements.visualModeButton.classList.remove("active");
+    elements.htmlModeButton.setAttribute("aria-selected", "true");
+    elements.visualModeButton.setAttribute("aria-selected", "false");
+    elements.imageButton.disabled = true;
+    elements.moveImageUpButton.disabled = true;
+    elements.moveImageDownButton.disabled = true;
+    elements.removeImageButton.disabled = true;
+    state.mode = "html";
+    return;
+  }
+  elements.contentEditor.innerHTML = rewriteAssetUrlsForEditor(elements.htmlSourceEditor.value);
+  elements.htmlSourceEditor.classList.add("hidden");
+  elements.contentEditor.classList.remove("hidden");
+  elements.toolbar.classList.remove("hidden");
+  elements.visualModeButton.classList.add("active");
+  elements.htmlModeButton.classList.remove("active");
+  elements.visualModeButton.setAttribute("aria-selected", "true");
+  elements.htmlModeButton.setAttribute("aria-selected", "false");
+  state.mode = "visual";
+  updateImageControls();
+}
+
+function stripEditorState(html) {
+  return html.replace(/\sclass=(['"])([^'"]*)\1/gi, (_, quote, classes) => {
+    const cleanClasses = classes.split(/\s+/).filter((name) => name && name !== "image-selected").join(" ");
+    return cleanClasses ? ` class=${quote}${cleanClasses}${quote}` : "";
+  });
+}
+
+function beginImageInsert() {
+  rememberSelection();
+  elements.imageInput.click();
+}
+
+function rememberSelection() {
+  if (state.mode !== "visual") return;
+  const selection = window.getSelection();
+  if (!selection?.rangeCount) return;
+  const range = selection.getRangeAt(0);
+  if (elements.contentEditor.contains(range.commonAncestorContainer)) {
+    state.savedSelection = range.cloneRange();
+  }
+}
+
+function selectImageFromClick(event) {
+  const image = event.target.closest?.("img");
+  const block = image ? image.closest("figure") || imageBlockParent(image) || image : null;
+  if (!block || !elements.contentEditor.contains(block)) {
+    clearSelectedImage();
+    return;
+  }
+  clearSelectedImage(false);
+  state.selectedImage = block;
+  block.classList.add("image-selected");
+  updateImageControls();
+}
+
+function imageBlockParent(image) {
+  const parent = image.parentElement;
+  if (!parent || parent === elements.contentEditor) return null;
+  if (parent.children.length !== 1) return null;
+  if (["P", "H1", "H2", "H3", "H4", "LI", "TD", "TH"].includes(parent.tagName)) return null;
+  return parent;
+}
+
+function clearSelectedImage(update = true) {
+  state.selectedImage?.classList.remove("image-selected");
+  state.selectedImage = null;
+  if (update) updateImageControls();
+}
+
+function moveSelectedImage(direction) {
+  const selected = state.selectedImage;
+  if (!selected || !selected.parentElement) return;
+  const sibling = direction < 0 ? selected.previousElementSibling : selected.nextElementSibling;
+  if (!sibling) return toast(direction < 0 ? "La imagen ya está arriba." : "La imagen ya está abajo.", true);
+  if (direction < 0) selected.parentElement.insertBefore(selected, sibling);
+  else selected.parentElement.insertBefore(sibling, selected);
+  markDirty();
+  toast(direction < 0 ? "Imagen movida arriba." : "Imagen movida abajo.");
+  updateImageControls();
+}
+
+function removeSelectedImage() {
+  const selected = state.selectedImage;
+  if (!selected) return;
+  if (!window.confirm("¿Eliminar esta imagen del artículo? El archivo original se conservará en la carpeta de imágenes.")) return;
+  selected.remove();
+  clearSelectedImage();
+  markDirty();
+  toast("Imagen eliminada del artículo. El archivo original se conserva.");
+}
+
+function updateImageControls() {
+  const selected = state.mode === "visual" ? state.selectedImage : null;
+  elements.imageButton.disabled = state.mode !== "visual";
+  elements.moveImageUpButton.disabled = !selected || !selected.previousElementSibling;
+  elements.moveImageDownButton.disabled = !selected || !selected.nextElementSibling;
+  elements.removeImageButton.disabled = !selected;
 }
 
 function showReview(review) {
@@ -224,15 +364,45 @@ async function uploadSelectedImage() {
       method: "POST",
       body: JSON.stringify({ site: state.site, filename: file.name, mime: file.type, data })
     });
-    elements.contentEditor.focus();
-    document.execCommand("insertHTML", false,
-      `<figure><img src="${escapeHtml(assetProxy(uploaded.url))}" alt="${escapeHtml(alt.trim())}" loading="lazy" decoding="async"><figcaption></figcaption></figure>`);
+    restoreSelection();
+    const range = state.savedSelection || document.createRange();
+    if (!state.savedSelection) {
+      range.selectNodeContents(elements.contentEditor);
+      range.collapse(false);
+    }
+    const figure = document.createElement("figure");
+    const image = document.createElement("img");
+    image.src = assetProxy(uploaded.url);
+    image.alt = alt.trim();
+    image.loading = "lazy";
+    image.decoding = "async";
+    const caption = document.createElement("figcaption");
+    figure.append(image, caption);
+    range.deleteContents();
+    range.insertNode(figure);
+    range.setStartAfter(figure);
+    range.collapse(true);
+    const selection = window.getSelection();
+    selection.removeAllRanges();
+    selection.addRange(range);
+    clearSelectedImage(false);
+    state.selectedImage = figure;
+    figure.classList.add("image-selected");
+    updateImageControls();
     markDirty();
     toast("Imagen añadida al post.");
   } finally {
     elements.imageInput.value = "";
     setBusy(false);
   }
+}
+
+function restoreSelection() {
+  if (!state.savedSelection) return;
+  elements.contentEditor.focus();
+  const selection = window.getSelection();
+  selection.removeAllRanges();
+  selection.addRange(state.savedSelection);
 }
 
 function insertLink() {

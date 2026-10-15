@@ -69,6 +69,11 @@
           </label>
         </div>
 
+        <div class="editor-modes" role="tablist" aria-label="Modo de edición">
+          <button type="button" id="visualModeButton" class="mode-button active" role="tab" aria-selected="true">Visual</button>
+          <button type="button" id="htmlModeButton" class="mode-button" role="tab" aria-selected="false">HTML</button>
+        </div>
+
         <div class="toolbar" role="toolbar" aria-label="Formato del texto">
           <button type="button" data-command="bold" title="Negrita"><strong>B</strong></button>
           <button type="button" data-command="italic" title="Cursiva"><em>I</em></button>
@@ -78,11 +83,15 @@
           <button type="button" data-command="insertUnorderedList">• Lista</button>
           <button type="button" data-command="insertOrderedList">1. Lista</button>
           <button type="button" id="linkButton">Enlace</button>
-          <button type="button" id="imageButton">Imagen</button>
+          <button type="button" id="imageButton" class="accent-tool">Insertar imagen</button>
+          <button type="button" id="moveImageUpButton" disabled title="Mover la imagen seleccionada hacia arriba">↑ Imagen</button>
+          <button type="button" id="moveImageDownButton" disabled title="Mover la imagen seleccionada hacia abajo">↓ Imagen</button>
+          <button type="button" id="removeImageButton" class="danger-tool" disabled title="Quitar la imagen seleccionada del artículo">Eliminar imagen</button>
           <input id="imageInput" type="file" accept="image/jpeg,image/png,image/webp,image/gif" hidden>
         </div>
 
         <div id="contentEditor" class="content-editor" contenteditable="true" spellcheck="true"></div>
+        <textarea id="htmlSourceEditor" class="html-source-editor hidden" spellcheck="false" aria-label="HTML del contenido"></textarea>
 
         <section id="reviewPanel" class="review-panel hidden" aria-live="polite"></section>
 
