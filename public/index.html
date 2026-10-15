@@ -27,7 +27,10 @@
           <strong>Posts canónicos</strong>
           <span id="postCount" class="count"></span>
         </div>
-        <input id="postSearch" type="search" placeholder="Buscar post…">
+        <div class="search-row">
+          <input id="postSearch" type="search" placeholder="Buscar post…">
+          <button id="clearPostSearch" type="button" class="clear-search" title="Mostrar todos los posts" aria-label="Mostrar todos los posts">×</button>
+        </div>
       </div>
       <div id="postList" class="post-list" aria-live="polite"></div>
       <details class="aliases">
@@ -49,7 +52,10 @@
             <span id="editorStatus" class="status">Sin cambios</span>
             <h2 id="editorName"></h2>
           </div>
-          <a id="liveLink" class="button secondary" target="_blank" rel="noreferrer">Ver publicado</a>
+          <div class="editor-actions">
+            <button id="backToPostsButton" type="button" class="button secondary">Volver al listado</button>
+            <a id="liveLink" class="button secondary" target="_blank" rel="noreferrer">Ver publicado</a>
+          </div>
         </div>
 
         <div class="seo-grid">

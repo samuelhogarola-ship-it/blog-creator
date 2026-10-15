@@ -16,6 +16,7 @@ const elements = {
   siteSelect: $("#siteSelect"),
   auditSiteButton: $("#auditSiteButton"),
   postSearch: $("#postSearch"),
+  clearPostSearch: $("#clearPostSearch"),
   postList: $("#postList"),
   postCount: $("#postCount"),
   aliasList: $("#aliasList"),
@@ -23,6 +24,7 @@ const elements = {
   emptyState: $("#emptyState"),
   editorForm: $("#editorForm"),
   editorName: $("#editorName"),
+  backToPostsButton: $("#backToPostsButton"),
   editorStatus: $("#editorStatus"),
   liveLink: $("#liveLink"),
   seoTitle: $("#seoTitle"),
@@ -71,6 +73,17 @@ function bindEvents() {
     await loadPosts();
   });
   elements.postSearch.addEventListener("input", renderPosts);
+  elements.clearPostSearch.addEventListener("click", () => {
+    elements.postSearch.value = "";
+    renderPosts();
+    elements.postSearch.focus();
+  });
+  elements.backToPostsButton.addEventListener("click", () => {
+    if (!confirmDiscard()) return;
+    closeEditor();
+    elements.postSearch.focus();
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  });
   elements.editorForm.addEventListener("input", () => markDirty());
   elements.editorForm.addEventListener("submit", saveActivePost);
   elements.reviewButton.addEventListener("click", reviewActivePost);

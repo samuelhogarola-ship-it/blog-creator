@@ -41,7 +41,10 @@ button, select { cursor: pointer; }
 .sidebar-head { padding: 18px 16px 12px; border-bottom: 1px solid var(--line); }
 .sidebar-head > div { display: flex; justify-content: space-between; margin-bottom: 10px; }
 .count { color: var(--muted); font-size: 12px; }
-.sidebar input { width: 100%; padding: 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); }
+.search-row { position: relative; display: flex; align-items: center; }
+.sidebar input { width: 100%; padding: 10px 34px 10px 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--canvas); }
+.clear-search { position: absolute; right: 5px; width: 26px; height: 26px; padding: 0; border: 0; border-radius: 50%; color: var(--muted); background: transparent; font-size: 20px; line-height: 1; }
+.clear-search:hover { color: var(--ink); background: #e3e8ee; }
 .post-list { flex: 1; overflow: auto; padding: 8px; }
 .post-item { width: 100%; padding: 11px 10px; display: grid; gap: 4px; text-align: left; border: 0; border-radius: 9px; color: inherit; background: transparent; }
 .post-item:hover { background: #f3f6fa; }
@@ -60,6 +63,7 @@ button, select { cursor: pointer; }
 .empty-icon { font-size: 48px; color: var(--brand); }
 .editor-form { width: min(1040px, calc(100% - 40px)); margin: 24px auto 110px; }
 .editor-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 16px; }
+.editor-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .editor-heading h2 { margin: 4px 0 0; font-size: 26px; line-height: 1.15; }
 .status { color: var(--muted); font-size: 12px; font-weight: 750; text-transform: uppercase; letter-spacing: .06em; }
 .status[data-state="dirty"] { color: #a76500; }
