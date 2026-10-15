@@ -30,6 +30,7 @@
         <div class="search-row">
           <input id="postSearch" type="search" placeholder="Buscar post…">
           <button id="clearPostSearch" type="button" class="clear-search" title="Mostrar todos los posts" aria-label="Mostrar todos los posts">×</button>
+          <button id="newPostButton" type="button" class="clear-search" title="Crear post WordPress" aria-label="Crear post WordPress">+</button>
         </div>
       </div>
       <div id="postList" class="post-list" aria-live="polite"></div>
@@ -72,6 +73,12 @@
           </label>
           <label class="field">Canonical
             <input id="canonical" readonly>
+          </label>
+          <label class="field" id="statusField">Estado
+            <select id="postStatus">
+              <option value="draft">Borrador</option>
+              <option value="publish">Publicado</option>
+            </select>
           </label>
         </div>
 

@@ -19,6 +19,7 @@ import {
   stripTags,
   toSiteRelativeUrl
 } from "./lib/html.js";
+import { createWordpressClient, wordpressReady } from "./lib/wordpress.js";
 
 const APP_ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUBLIC_ROOT = path.join(APP_ROOT, "public");
@@ -51,6 +52,7 @@ function postPath(site, slug) {
 }
 
 async function scanPosts(site) {
+  if (site.type === "wordpress") return scanWordpressPosts(site);
   const directory = safeChild(site.root, site.postsDirectory);
   const entries = await fsp.readdir(directory, { withFileTypes: true });
   const canonical = [];
@@ -81,7 +83,24 @@ async function scanPosts(site) {
   return { canonical, aliases };
 }
 
+async function scanWordpressPosts(site) {
+  if (!wordpressReady(site)) throw httpError(412, "WordPress no está conectado: configura la Application Password del editor.");
+  const posts = await createWordpressClient(site).listPosts();
+  return {
+    canonical: posts.map((post) => ({
+      slug: String(post.id),
+      title: post.title?.rendered || post.title?.raw || "Sin título",
+      canonical: post.link || "",
+      robots: "",
+      url: post.link || "",
+      targetSlug: ""
+    })),
+    aliases: []
+  };
+}
+
 async function readPost(site, slug) {
+  if (site.type === "wordpress") return readWordpressPost(site, slug);
   const file = postPath(site, slug);
   const html = await fsp.readFile(file, "utf8");
   const article = getElement(html, "article");
@@ -103,7 +122,26 @@ async function readPost(site, slug) {
   };
 }
 
+async function readWordpressPost(site, id) {
+  if (!wordpressReady(site)) throw httpError(412, "WordPress no está conectado: configura la Application Password del editor.");
+  const post = await createWordpressClient(site).readPost(id);
+  return {
+    slug: String(post.id),
+    title: post.title?.raw || post.title?.rendered || "",
+    description: post.excerpt?.raw || stripTags(post.excerpt?.rendered || ""),
+    canonical: post.link || "",
+    robots: "",
+    h1Text: post.title?.raw || post.title?.rendered || "",
+    image: post.featured_media ? "" : "",
+    imageAlt: "",
+    contentHtml: post.content?.raw || post.content?.rendered || "",
+    liveUrl: post.link || "",
+    status: post.status || "draft"
+  };
+}
+
 async function savePost(site, slug, draft, force = false) {
+  if (site.type === "wordpress") return saveWordpressPost(site, slug, draft);
   const file = postPath(site, slug);
   const currentHtml = await fsp.readFile(file, "utf8");
   const article = getElement(currentHtml, "article");
@@ -135,7 +173,29 @@ async function savePost(site, slug, draft, force = false) {
   return { saved: true, review, file };
 }
 
+async function saveWordpressPost(site, id, draft) {
+  if (!wordpressReady(site)) throw httpError(412, "WordPress no está conectado: configura la Application Password del editor.");
+  const review = reviewDraft({ site, slug: String(id), ...draft, canonical: draft.canonical || "", robots: "" });
+  if (!review.ok && !draft.force) {
+    const error = httpError(422, "La revisión SEO ha detectado errores que debes corregir.");
+    error.review = review;
+    throw error;
+  }
+  const post = await createWordpressClient(site).updatePost(id, {
+    title: draft.title.trim(),
+    excerpt: draft.description.trim(),
+    content: draft.contentHtml,
+    status: draft.status || "draft"
+  });
+  return { saved: true, review, post: { id: post.id, link: post.link, status: post.status } };
+}
+
 async function uploadImage(site, body) {
+  if (site.type === "wordpress") {
+    if (!wordpressReady(site)) throw httpError(412, "WordPress no está conectado: configura la Application Password del editor.");
+    const media = await createWordpressClient(site).uploadMedia(body);
+    return { url: media.source_url, mediaId: media.id };
+  }
   const extensionByMime = {
     "image/jpeg": ".jpg",
     "image/png": ".png",
@@ -174,7 +234,23 @@ const server = http.createServer(async (request, response) => {
   try {
     const url = new URL(request.url, `http://${HOST}:${PORT}`);
     if (url.pathname === "/api/sites" && request.method === "GET") {
-      return json(response, 200, { sites: sitesConfig.sites.map(({ root, ...site }) => site) });
+      return json(response, 200, { sites: sitesConfig.sites.map(({ root, ...site }) => ({ ...site, wordpressReady: site.type === "wordpress" ? wordpressReady(site) : undefined })) });
+    }
+    if (url.pathname === "/api/wordpress/preflight" && request.method === "POST") {
+      const body = await readJson(request);
+      const site = siteById(body.site);
+      if (site.type !== "wordpress") throw httpError(400, "Esta web no usa el adaptador WordPress");
+      if (!wordpressReady(site)) throw httpError(412, "Faltan BLOG_CREATOR_WP_USERNAME y BLOG_CREATOR_WP_APPLICATION_PASSWORD");
+      return json(response, 200, await createWordpressClient(site).preflight());
+    }
+    if (url.pathname === "/api/wordpress/posts" && request.method === "POST") {
+      const body = await readJson(request);
+      const site = siteById(body.site);
+      if (site.type !== "wordpress") throw httpError(400, "Esta web no usa el adaptador WordPress");
+      if (!wordpressReady(site)) throw httpError(412, "WordPress no está conectado: configura la Application Password del editor.");
+      const draft = body.draft || {};
+      const post = await createWordpressClient(site).createPost({ title: String(draft.title || "Sin título"), excerpt: String(draft.description || ""), content: String(draft.contentHtml || ""), status: "draft" });
+      return json(response, 201, { id: post.id, link: post.link, status: post.status });
     }
     if (url.pathname === "/api/posts" && request.method === "GET") {
       return json(response, 200, await scanPosts(siteById(url.searchParams.get("site"))));

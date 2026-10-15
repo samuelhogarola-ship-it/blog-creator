@@ -17,6 +17,7 @@ const elements = {
   auditSiteButton: $("#auditSiteButton"),
   postSearch: $("#postSearch"),
   clearPostSearch: $("#clearPostSearch"),
+  newPostButton: $("#newPostButton"),
   postList: $("#postList"),
   postCount: $("#postCount"),
   aliasList: $("#aliasList"),
@@ -31,6 +32,8 @@ const elements = {
   seoDescription: $("#seoDescription"),
   slug: $("#slug"),
   canonical: $("#canonical"),
+  postStatus: $("#postStatus"),
+  statusField: $("#statusField"),
   titleCounter: $("#titleCounter"),
   descriptionCounter: $("#descriptionCounter"),
   contentEditor: $("#contentEditor"),
@@ -78,6 +81,7 @@ function bindEvents() {
     renderPosts();
     elements.postSearch.focus();
   });
+  elements.newPostButton.addEventListener("click", createNewPost);
   elements.backToPostsButton.addEventListener("click", () => {
     if (!confirmDiscard()) return;
     closeEditor();
@@ -131,6 +135,14 @@ async function loadPosts() {
     elements.aliasCount.textContent = state.aliases.length;
     renderPosts();
     renderAliases();
+  } catch (error) {
+    state.posts = [];
+    state.aliases = [];
+    elements.postCount.textContent = "0";
+    elements.aliasCount.textContent = "0";
+    renderPosts();
+    renderAliases();
+    toast(error.message, true);
   } finally {
     setBusy(false);
   }
@@ -176,6 +188,8 @@ async function openPost(slug) {
     elements.seoDescription.value = post.description;
     elements.slug.value = post.slug;
     elements.canonical.value = post.canonical;
+    elements.postStatus.value = post.status || "draft";
+    elements.statusField.classList.toggle("hidden", !isWordpressSite());
     elements.contentEditor.innerHTML = rewriteAssetUrlsForEditor(post.contentHtml);
     elements.htmlSourceEditor.value = post.contentHtml;
     setEditorMode("visual");
@@ -226,11 +240,27 @@ async function saveActivePost(event) {
   }
 }
 
+async function createNewPost() {
+  if (!isWordpressSite()) return toast("La creación directa solo está disponible para WordPress.", true);
+  const title = window.prompt("Título del nuevo post:");
+  if (!title?.trim()) return;
+  setBusy(true);
+  try {
+    const post = await api("/api/wordpress/posts", { method: "POST", body: JSON.stringify({ site: state.site, draft: { title: title.trim(), description: "", contentHtml: "", status: "draft" } }) });
+    await loadPosts();
+    await openPost(String(post.id));
+    toast("Borrador creado.");
+  } finally {
+    setBusy(false);
+  }
+}
+
 function collectDraft() {
   return {
     title: elements.seoTitle.value,
     description: elements.seoDescription.value,
-    contentHtml: getCurrentContentHtml()
+    contentHtml: getCurrentContentHtml(),
+    status: elements.postStatus.value || state.draft?.status || "draft"
   };
 }
 
@@ -454,7 +484,12 @@ function restoreAssetUrls(html) {
 }
 
 function assetProxy(url) {
+  if (/^https?:\/\//i.test(url)) return url;
   return `/site-assets/${url.replace(/^\//, "")}?site=${encodeURIComponent(state.site)}`;
+}
+
+function isWordpressSite() {
+  return state.sites.find((site) => site.id === state.site)?.type === "wordpress";
 }
 
 function markDirty() {
