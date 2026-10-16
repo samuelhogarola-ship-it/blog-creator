@@ -23,6 +23,17 @@
       "aliases": {
         "url-antigua": "url-canonica"
       }
+    },
+    {
+      "id": "web-fuengirola",
+      "name": "Web Fuengirola",
+      "root": "/Users/sam/Desktop/webs/web fuengirola",
+      "baseUrl": "https://webfuengirola.com",
+      "postsDirectory": "blog",
+      "imageDirectory": "img/blog",
+      "siteAuditCommand": "npm run test:unit",
+      "templatePost": "diseno-web-para-negocio-local-en-fuengirola",
+      "aliases": {}
     }
   ]
 }
