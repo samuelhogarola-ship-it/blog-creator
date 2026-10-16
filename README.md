@@ -23,6 +23,10 @@ La primera web ya está configurada en `config/sites.json`. El panel detecta aut
 
 El guardado queda bloqueado si el post canónico tiene un error técnico importante: falta de H1, canonical incorrecta, `noindex`, meta vacía o imágenes sin `alt`.
 
+## Web Fuengirola
+
+Web Fuengirola también está configurada como blog estático local. Usa `blog/` para los artículos, `img/blog/` para sus imágenes y ejecuta la batería unitaria del proyecto como auditoría antes de publicar cambios.
+
 ## Añadir otra web
 
 Duplica una entrada de `config/sites.json`:

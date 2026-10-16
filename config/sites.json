@@ -32,6 +32,17 @@
         "tekamolo-2-0-en-aleman-satzbau": "tekamolo-orden-de-palabras-en-aleman",
         "trennbare-verben-en-aleman-verbos-separables-y-no-separables": "trennbare-verben-en-aleman"
       }
+    },
+    {
+      "id": "web-fuengirola",
+      "name": "Web Fuengirola",
+      "root": "/Users/sam/Desktop/webs/web fuengirola",
+      "baseUrl": "https://webfuengirola.com",
+      "postsDirectory": "blog",
+      "imageDirectory": "img/blog",
+      "siteAuditCommand": "npm run test:unit",
+      "templatePost": "diseno-web-para-negocio-local-en-fuengirola",
+      "aliases": {}
     }
   ]
 }
