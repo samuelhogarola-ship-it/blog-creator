@@ -1,17 +1,6 @@
 {
   "sites": [
     {
-      "id": "sportmassage",
-      "name": "Sport Massage Fuengirola",
-      "type": "wordpress",
-      "baseUrl": "https://blog.sportmassagefuengirola.com",
-      "wordpress": {
-        "apiUrl": "https://blog.sportmassagefuengirola.com/wp-json/wp/v2",
-        "usernameEnv": "BLOG_CREATOR_WP_USERNAME",
-        "passwordEnv": "BLOG_CREATOR_WP_APPLICATION_PASSWORD"
-      }
-    },
-    {
       "id": "samuel-coach",
       "name": "Samuel Coach de Alemán",
       "root": "/Users/sam/Desktop/webs/samuel coach de aleman",
